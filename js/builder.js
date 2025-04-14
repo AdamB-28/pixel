@@ -38,7 +38,8 @@ function initializeBuilder() {
                 attackers: [],
                 defenders: [],
                 ball: { left: "50%", top: "50%" }
-            }
+            },
+            highBall: false // Domyślnie false
         }]
     };
     
@@ -121,6 +122,11 @@ function saveCurrentStep() {
         });
     });
     
+    // Zachowaj wcześniej ustawioną flagę highBall (jeśli istnieje)
+    const highBall = currentPlayBuilder.steps[currentStep] && 
+                    typeof currentPlayBuilder.steps[currentStep].highBall !== 'undefined' ? 
+                    currentPlayBuilder.steps[currentStep].highBall : false;
+    
     // Update the step in the play
     currentPlayBuilder.steps[currentStep] = {
         positions: {
@@ -130,7 +136,8 @@ function saveCurrentStep() {
                 left: ballLeft,
                 top: ballTop
             }
-        }
+        },
+        highBall: highBall // Zachowaj wartość flagi
     };
     
     return true;
@@ -348,13 +355,20 @@ function updateStepsButtons() {
     for (let i = 0; i < currentPlayBuilder.steps.length; i++) {
         const buttonClass = i === currentStep ? 'btn-primary' : 'btn-secondary';
         const copyDisabled = i === 0 ? 'disabled' : '';
-        const deleteDisabled = currentPlayBuilder.steps.length <= 1 ? 'disabled' : ''; // Nie pozwalaj usunąć ostatniego kroku
+        const deleteDisabled = currentPlayBuilder.steps.length <= 1 ? 'disabled' : '';
+        
+        // Pobierz stan checkboxa (domyślnie false)
+        const highBallChecked = currentPlayBuilder.steps[i].highBall ? 'checked' : '';
         
         $stepsButtons.append(`
             <div class="btn-group me-1 mb-1">
                 <button type="button" class="btn ${buttonClass} step-btn" data-step="${i}">Krok ${i + 1}</button>
                 <button type="button" class="btn btn-outline-info copy-step" data-step="${i}" title="Kopiuj z poprzedniego kroku" ${copyDisabled}>K</button>
                 <button type="button" class="btn btn-outline-danger delete-step" data-step="${i}" title="Usuń krok" ${deleteDisabled}>-</button>
+                <div class="form-check ms-2">
+                    <input class="form-check-input high-ball-check" type="checkbox" id="highBall-${i}" data-step="${i}" ${highBallChecked}>
+                    <label class="form-check-label" for="highBall-${i}">Górą</label>
+                </div>
             </div>
         `);
     }
@@ -379,6 +393,19 @@ function updateStepsButtons() {
         
         const stepIndex = parseInt($(this).data('step'));
         deleteStep(stepIndex);
+    });
+    
+    // Obsługa checkboxa "Górą"
+    $('.high-ball-check').off('change').on('change', function() {
+        const stepIndex = parseInt($(this).data('step'));
+        const isChecked = $(this).prop('checked');
+        
+        // Zaktualizuj flagę dla kroku
+        currentPlayBuilder.steps[stepIndex].highBall = isChecked;
+        console.log(`Krok ${stepIndex + 1} zagranie górą: ${isChecked}`);
+        
+        // Zapisz stan
+        saveCurrentStep();
     });
 }
 
@@ -618,7 +645,7 @@ function copyFromPreviousStep(stepIndex) {
     alert(`Krok ${stepIndex + 1} został zaktualizowany z pozycjami z kroku ${stepIndex}!`);
 }
 
-// NAPRAWIONA funkcja zapisywania zagrywki
+// Naprawiona funkcja savePlay
 function savePlay() {
     console.log("Saving play");
     
@@ -649,21 +676,13 @@ function savePlay() {
     const playId = 'play_' + Date.now();
     
     // Pobierz zapisane zagrywki
-    let savedPlays;
-    try {
-        savedPlays = JSON.parse(localStorage.getItem('plays') || '{}');
-    } catch (e) {
-        console.error("Error parsing saved plays:", e);
-        savedPlays = {};
-    }
+    let savedPlays = loadPlaysFromStorage();
     
     // Dodaj nową zagrywkę
     savedPlays[playId] = currentPlayBuilder;
     
     // Zapisz zagrywki w localStorage
-    try {
-        localStorage.setItem('plays', JSON.stringify(savedPlays));
-        
+    if (savePlaysToStorage(savedPlays)) {
         // Zaktualizuj listę zapisanych zagrywek
         updateSavedPlaysList();
         
@@ -671,8 +690,7 @@ function savePlay() {
         initializeBuilder();
         
         alert(`Zagrywka "${playName}" została zapisana!`);
-    } catch (e) {
-        console.error("Error saving play:", e);
+    } else {
         alert('Wystąpił błąd podczas zapisywania zagrywki. Spróbuj ponownie.');
     }
 }

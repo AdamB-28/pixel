@@ -544,37 +544,33 @@ function animateTransition(fromStep, toStep) {
         return;
     }
     
-    // Funkcja do animowania pojedynczego elementu
-    function animateElement(element, fromPos, toPos) {
-        // Jeśli element nie istnieje, utwórz go w pozycji początkowej
-        if ($(element).length === 0) {
-            $('.pitch.horizontal').append($(toPos.element).css({
-                'left': fromPos.left,
-                'top': fromPos.top
-            }));
-        }
-        
-        // Animuj do pozycji docelowej
-        $(element).animate({
-            'left': toPos.left,
-            'top': toPos.top
-        }, 600, 'easeInOutCubic');
-    }
-    
     // Wyczyść boisko
     $('.pitch.horizontal').empty();
     
+    // Sprawdź, czy podanie ma być górą
+    const isHighBall = toStep.highBall === true;
+    
     // Animuj piłkę
     if (fromStep.positions.ball && toStep.positions.ball) {
+        // Dodaj piłkę w pozycji początkowej
         $('.pitch.horizontal').append(`
             <div class="ball" id="game-ball" 
                  style="left: ${fromStep.positions.ball.left}; top: ${fromStep.positions.ball.top};"></div>
         `);
         
+        // Jeśli ma być podanie górą, dodaj klasę animacji
+        if (isHighBall) {
+            $('#game-ball').addClass('high-ball-animation');
+        }
+        
+        // Animuj przemieszczenie piłki
         $('#game-ball').animate({
             'left': toStep.positions.ball.left,
             'top': toStep.positions.ball.top
-        }, 600, 'easeInOutCubic');
+        }, 600, 'easeInOutCubic', function() {
+            // Po zakończeniu animacji usuń klasę
+            $(this).removeClass('high-ball-animation');
+        });
     } else {
         // Jeśli brakuje piłki w którymś kroku, po prostu pokaż ją bez animacji
         if (toStep.positions.ball) {
