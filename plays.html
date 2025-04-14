@@ -41,20 +41,15 @@ eafc\plays.html -->
             <!-- Left side - Plays selector -->
             <div class="col-md-3">
                 <div class="card">
-                    <!-- Zaktualizowany nagłówek karty - tylko przycisk importu -->
                     <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
                         <h4>Zagrywki</h4>
                         <div>
-                            <!-- Usunięto przyciski "Załaduj zapisane" i "Eksportuj" -->
                             <button id="import-btn" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#importExportModal">Importuj</button>
                         </div>
                     </div>
                     <div class="card-body">
                         <div class="list-group" id="plays-list">
-                            <a href="#" class="list-group-item list-group-item-action active" data-play="corner">Rzut Rożny</a>
-                            <a href="#" class="list-group-item list-group-item-action" data-play="freekick">Rzut Wolny</a>
-                            <a href="#" class="list-group-item list-group-item-action" data-play="penalty">Rzut Karny</a>
-                            <a href="#" class="list-group-item list-group-item-action" data-play="pressing">Pressing</a>
+
                         </div>
                     </div>
                 </div>
@@ -82,18 +77,20 @@ eafc\plays.html -->
                 </div>
             </div>
             
-            <!-- Right side - Step Description -->
+            <!-- Right side - Step Description (tylko jedna karta) -->
             <div class="col-md-3">
                 <div class="card">
                     <div class="card-header bg-dark text-white">
-                        <h4>Krok: <span id="current-step">1</span></h4>
+                        <h5 class="mb-0">Krok: <span id="current-step">1</span>/<span id="total-steps">1</span></h5>
                     </div>
                     <div class="card-body">
-                        <div id="step-description" class="description">
-                            <h5>Opis kroku</h5>
-                            <div id="step-info">
-                                <p id="step-text">Wybierz zagrywkę i krok, aby zobaczyć opis.</p>
-                            </div>
+                        <div class="mb-3">
+                            <h6>Opis:</h6>
+                            <p id="step-description-display" class="p-2 bg-light rounded">Brak opisu</p>
+                        </div>
+                        <div class="mb-3">
+                            <h6>Podanie:</h6>
+                            <p id="high-ball-indicator" class="p-2 bg-light rounded">Normalne</p>
                         </div>
                     </div>
                 </div>

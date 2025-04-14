@@ -1,96 +1,96 @@
 // Sample data structure for plays - now as default plays
-const defaultPlays = {
-    corner: {
-        name: "Rzut Rożny",
-        steps: [
-            {
-                description: "Zawodnicy ustawiają się w polu karnym, jeden zawodnik podchodzi do rogu.",
-                positions: {
-                    attackers: [
-                        { id: "attacker1", left: "85%", top: "10%", number: 11 }, // Corner taker
-                        { id: "attacker2", left: "60%", top: "20%", number: 9 },
-                        { id: "attacker3", left: "50%", top: "30%", number: 10 },
-                        { id: "attacker4", left: "40%", top: "20%", number: 8 },
-                        { id: "attacker5", left: "70%", top: "40%", number: 6 }
-                    ],
-                    defenders: [
-                        { id: "defender1", left: "30%", top: "15%", number: 2 },
-                        { id: "defender2", left: "35%", top: "25%", number: 5 },
-                        { id: "defender3", left: "45%", top: "15%", number: 3 },
-                        { id: "defender4", left: "25%", top: "30%", number: 4 },
-                        { id: "defender5", left: "15%", top: "50%", number: 1 } // Goalkeeper
-                    ],
-                    ball: { left: "85%", top: "5%" } // Ball positioned at the corner
-                }
-            },
-            {
-                description: "Zawodnik wykonujący rzut rożny dośrodkowuje piłkę w pole karne.",
-                positions: {
-                    attackers: [
-                        { id: "attacker1", left: "80%", top: "15%", number: 11 }, // Corner taker after kick
-                        { id: "attacker2", left: "55%", top: "15%", number: 9 },
-                        { id: "attacker3", left: "45%", top: "25%", number: 10 },
-                        { id: "attacker4", left: "40%", top: "15%", number: 8 },
-                        { id: "attacker5", left: "65%", top: "35%", number: 6 }
-                    ],
-                    defenders: [
-                        { id: "defender1", left: "30%", top: "15%", number: 2 },
-                        { id: "defender2", left: "35%", top: "20%", number: 5 },
-                        { id: "defender3", left: "45%", top: "15%", number: 3 },
-                        { id: "defender4", left: "25%", top: "30%", number: 4 },
-                        { id: "defender5", left: "15%", top: "45%", number: 1 } // Goalkeeper moved slightly
-                    ],
-                    ball: { left: "75%", top: "20%" } // Ball in the air
-                }
-            },
-            {
-                description: "Napastnik strzela głową na bramkę.",
-                positions: {
-                    attackers: [
-                        { id: "attacker1", left: "75%", top: "20%", number: 11 },
-                        { id: "attacker2", left: "40%", top: "15%", number: 9 }, // Striker heading
-                        { id: "attacker3", left: "45%", top: "25%", number: 10 },
-                        { id: "attacker4", left: "50%", top: "35%", number: 8 },
-                        { id: "attacker5", left: "60%", top: "30%", number: 6 }
-                    ],
-                    defenders: [
-                        { id: "defender1", left: "35%", top: "20%", number: 2 },
-                        { id: "defender2", left: "42%", top: "22%", number: 5 },
-                        { id: "defender3", left: "48%", top: "18%", number: 3 },
-                        { id: "defender4", left: "30%", top: "35%", number: 4 },
-                        { id: "defender5", left: "20%", top: "40%", number: 1 } // Goalkeeper trying to save
-                    ],
-                    ball: { left: "45%", top: "15%" } // Ball near the goal
-                }
-            }
-        ]
-    },
-    freekick: {
-        name: "Rzut Wolny",
-        steps: [
-            {
-                description: "Zawodnicy ustawiają się przed polem karnym, jeden zawodnik podchodzi do piłki.",
-                positions: {
-                    attackers: [
-                        { id: "attacker1", left: "65%", top: "50%", number: 10 }, // Free kick taker
-                        { id: "attacker2", left: "50%", top: "30%", number: 9 },
-                        { id: "attacker3", left: "55%", top: "40%", number: 11 },
-                        { id: "attacker4", left: "45%", top: "45%", number: 8 },
-                        { id: "attacker5", left: "40%", top: "60%", number: 6 }
-                    ],
-                    defenders: [
-                        { id: "defender1", left: "35%", top: "40%", number: 2 },
-                        { id: "defender2", left: "30%", top: "45%", number: 5 },
-                        { id: "defender3", left: "25%", top: "50%", number: 3 },
-                        { id: "defender4", left: "20%", top: "55%", number: 4 },
-                        { id: "defender5", left: "15%", top: "50%", number: 1 } // Goalkeeper
-                    ],
-                    ball: { left: "65%", top: "45%" } // Ball positioned for free kick
-                }
-            }
-        ]
-    }
-};
+// const defaultPlays = {
+//     corner: {
+//         name: "Rzut Rożny",
+//         steps: [
+//             {
+//                 description: "Zawodnicy ustawiają się w polu karnym, jeden zawodnik podchodzi do rogu.",
+//                 positions: {
+//                     attackers: [
+//                         { id: "attacker1", left: "85%", top: "10%", number: 11 }, // Corner taker
+//                         { id: "attacker2", left: "60%", top: "20%", number: 9 },
+//                         { id: "attacker3", left: "50%", top: "30%", number: 10 },
+//                         { id: "attacker4", left: "40%", top: "20%", number: 8 },
+//                         { id: "attacker5", left: "70%", top: "40%", number: 6 }
+//                     ],
+//                     defenders: [
+//                         { id: "defender1", left: "30%", top: "15%", number: 2 },
+//                         { id: "defender2", left: "35%", top: "25%", number: 5 },
+//                         { id: "defender3", left: "45%", top: "15%", number: 3 },
+//                         { id: "defender4", left: "25%", top: "30%", number: 4 },
+//                         { id: "defender5", left: "15%", top: "50%", number: 1 } // Goalkeeper
+//                     ],
+//                     ball: { left: "85%", top: "5%" } // Ball positioned at the corner
+//                 }
+//             },
+//             {
+//                 description: "Zawodnik wykonujący rzut rożny dośrodkowuje piłkę w pole karne.",
+//                 positions: {
+//                     attackers: [
+//                         { id: "attacker1", left: "80%", top: "15%", number: 11 }, // Corner taker after kick
+//                         { id: "attacker2", left: "55%", top: "15%", number: 9 },
+//                         { id: "attacker3", left: "45%", top: "25%", number: 10 },
+//                         { id: "attacker4", left: "40%", top: "15%", number: 8 },
+//                         { id: "attacker5", left: "65%", top: "35%", number: 6 }
+//                     ],
+//                     defenders: [
+//                         { id: "defender1", left: "30%", top: "15%", number: 2 },
+//                         { id: "defender2", left: "35%", top: "20%", number: 5 },
+//                         { id: "defender3", left: "45%", top: "15%", number: 3 },
+//                         { id: "defender4", left: "25%", top: "30%", number: 4 },
+//                         { id: "defender5", left: "15%", top: "45%", number: 1 } // Goalkeeper moved slightly
+//                     ],
+//                     ball: { left: "75%", top: "20%" } // Ball in the air
+//                 }
+//             },
+//             {
+//                 description: "Napastnik strzela głową na bramkę.",
+//                 positions: {
+//                     attackers: [
+//                         { id: "attacker1", left: "75%", top: "20%", number: 11 },
+//                         { id: "attacker2", left: "40%", top: "15%", number: 9 }, // Striker heading
+//                         { id: "attacker3", left: "45%", top: "25%", number: 10 },
+//                         { id: "attacker4", left: "50%", top: "35%", number: 8 },
+//                         { id: "attacker5", left: "60%", top: "30%", number: 6 }
+//                     ],
+//                     defenders: [
+//                         { id: "defender1", left: "35%", top: "20%", number: 2 },
+//                         { id: "defender2", left: "42%", top: "22%", number: 5 },
+//                         { id: "defender3", left: "48%", top: "18%", number: 3 },
+//                         { id: "defender4", left: "30%", top: "35%", number: 4 },
+//                         { id: "defender5", left: "20%", top: "40%", number: 1 } // Goalkeeper trying to save
+//                     ],
+//                     ball: { left: "45%", top: "15%" } // Ball near the goal
+//                 }
+//             }
+//         ]
+//     },
+//     freekick: {
+//         name: "Rzut Wolny",
+//         steps: [
+//             {
+//                 description: "Zawodnicy ustawiają się przed polem karnym, jeden zawodnik podchodzi do piłki.",
+//                 positions: {
+//                     attackers: [
+//                         { id: "attacker1", left: "65%", top: "50%", number: 10 }, // Free kick taker
+//                         { id: "attacker2", left: "50%", top: "30%", number: 9 },
+//                         { id: "attacker3", left: "55%", top: "40%", number: 11 },
+//                         { id: "attacker4", left: "45%", top: "45%", number: 8 },
+//                         { id: "attacker5", left: "40%", top: "60%", number: 6 }
+//                     ],
+//                     defenders: [
+//                         { id: "defender1", left: "35%", top: "40%", number: 2 },
+//                         { id: "defender2", left: "30%", top: "45%", number: 5 },
+//                         { id: "defender3", left: "25%", top: "50%", number: 3 },
+//                         { id: "defender4", left: "20%", top: "55%", number: 4 },
+//                         { id: "defender5", left: "15%", top: "50%", number: 1 } // Goalkeeper
+//                     ],
+//                     ball: { left: "65%", top: "45%" } // Ball positioned for free kick
+//                 }
+//             }
+//         ]
+//     }
+// };
 
 // Combined plays object (will contain both default and user-created plays)
 let plays = {};
@@ -99,31 +99,58 @@ let plays = {};
 let currentPlay = '';
 let currentStep = 0;
 
-// Function to load plays from localStorage
+// Ujednolicona funkcja do ładowania zagrywek
 function loadUserPlays() {
     try {
-        const savedPlays = JSON.parse(localStorage.getItem('plays') || '{}');
-        return savedPlays;
+        const playsJSON = localStorage.getItem('plays');
+        if (!playsJSON) {
+            return {};
+        }
+        return JSON.parse(playsJSON);
     } catch (e) {
-        console.error("Error loading plays from localStorage:", e);
+        console.error('Błąd podczas ładowania zagrywek z localStorage:', e);
         return {};
     }
 }
 
-// Function to merge default and user plays
+// Poprawiona funkcja do łączenia zagrywek
 function initializeAllPlays() {
-    // Start with default plays
-    plays = {...defaultPlays};
+    // Ponieważ defaultPlays jest zakomentowane, zaczynamy od pustego obiektu
+    plays = {};
     
-    // Add user plays from localStorage
+    // Dodaj zagrywki użytkownika z localStorage
     const userPlays = loadUserPlays();
     
-    // Merge user plays (will overwrite defaults if same ID)
-    Object.entries(userPlays).forEach(([id, play]) => {
-        plays[id] = play;
-    });
+    // Sprawdź, czy mamy jakieś zagrywki
+    if (Object.keys(userPlays).length === 0) {
+        console.log("Brak zapisanych zagrywek w localStorage");
+    } else {
+        console.log(`Załadowano ${Object.keys(userPlays).length} zagrywek z localStorage`);
+    }
+    
+    // Połącz zagrywki
+    plays = {...plays, ...userPlays};
     
     return plays;
+}
+
+// Aby upewnić się, że funkcje importu działają poprawnie, dodajmy funkcję debugującą
+function debugPlays() {
+    console.log("===== DEBUG PLAYS =====");
+    console.log(`Liczba zagrywek w zmiennej plays: ${Object.keys(plays).length}`);
+    console.log("IDs zagrywek:");
+    Object.keys(plays).forEach(id => {
+        console.log(`- ${id}: ${plays[id].name}`);
+    });
+    
+    // Sprawdź localStorage
+    try {
+        const stored = JSON.parse(localStorage.getItem('plays') || '{}');
+        console.log(`Liczba zagrywek w localStorage: ${Object.keys(stored).length}`);
+    } catch (e) {
+        console.error("Błąd podczas sprawdzania localStorage:", e);
+    }
+    console.log("======================");
 }
 
 // Funkcja do ładowania zagrywek z localStorage
@@ -173,6 +200,7 @@ function mergePlaysToStorage(playsToMerge) {
 $(document).ready(function() {
     // Initialize all plays (default + user-created)
     initializeAllPlays();
+    debugPlays(); // Pokaż stan po inicjalizacji
     
     // Set default play selection if none is selected
     if (!currentPlay || !plays[currentPlay]) {
@@ -279,6 +307,7 @@ $(document).ready(function() {
             if (success) {
                 // Zaktualizuj plays z nowo zaimportowanych
                 initializeAllPlays();
+                debugPlays(); // Pokaż stan po imporcie
                 
                 // Aktualizuj listę
                 populatePlaysMenu();
@@ -287,6 +316,9 @@ $(document).ready(function() {
                 if (Object.keys(plays).length > 0) {
                     currentPlay = Object.keys(plays)[0];
                     initializePlay(currentPlay);
+                    console.log("Zainicjalizowano zagrywkę:", currentPlay);
+                } else {
+                    console.error("Brak zagrywek po imporcie!");
                 }
                 
                 alert(`Zagrywki zostały zaimportowane! Zaimportowano ${Object.keys(importedPlays).length} zagrywek.`);
@@ -464,6 +496,15 @@ function initializePlay(playId) {
     
     // Display the first step
     changeStep(currentStep);
+    
+    // Ustaw liczniki kroków
+    $('#current-step').text(1);
+    $('#total-steps').text(plays[playId].steps.length);
+    
+    // Załaduj pierwszy krok
+    currentStep = 0;
+    const firstStep = plays[playId].steps[0];
+    loadStepWithoutAnimation(firstStep);
 }
 
 // Aktualizacja funkcji changeStep aby dodać animację
@@ -488,6 +529,20 @@ function changeStep(stepIndex) {
     
     // Aktualizuj wyświetlanie bieżącego kroku
     $('#current-step').text(stepIndex + 1);
+    $('#total-steps').text(play.steps.length);
+    
+    // Aktualizuj opis kroku
+    const stepDescription = play.steps[stepIndex].description || "Brak opisu";
+    $('#step-description-display').text(stepDescription);
+    
+    // Aktualizuj informację o rodzaju podania
+    const isHighBall = play.steps[stepIndex].highBall === true;
+    $('#high-ball-indicator').text(isHighBall ? "Górą" : "Normalne");
+    if (isHighBall) {
+        $('#high-ball-indicator').removeClass('bg-light').addClass('bg-warning');
+    } else {
+        $('#high-ball-indicator').removeClass('bg-warning').addClass('bg-light');
+    }
     
     // Pobierz dane nowego kroku
     const newStep = play.steps[stepIndex];
@@ -507,6 +562,22 @@ function loadStepWithoutAnimation(step) {
     // Wyczyść boisko
     $('.pitch.horizontal').empty();
     
+    // Aktualizuj opis kroku (dodaj to) - dla przypadku, gdy inicjalizacja omija changeStep
+    if (step.description) {
+        $('#step-description-display').text(step.description);
+    } else {
+        $('#step-description-display').text("Brak opisu");
+    }
+    
+    // Aktualizuj informację o rodzaju podania
+    const isHighBall = step.highBall === true;
+    $('#high-ball-indicator').text(isHighBall ? "Górą" : "Normalne");
+    if (isHighBall) {
+        $('#high-ball-indicator').removeClass('bg-light').addClass('bg-warning');
+    } else {
+        $('#high-ball-indicator').removeClass('bg-warning').addClass('bg-light');
+    }
+    
     // Dodaj piłkę
     if (step.positions && step.positions.ball) {
         $('.pitch.horizontal').append(`
@@ -518,8 +589,11 @@ function loadStepWithoutAnimation(step) {
     // Dodaj atakujących
     if (step.positions && step.positions.attackers) {
         step.positions.attackers.forEach(player => {
+            // Dodaj klasę goalkeeper dla bramkarza (numer 1)
+            const isGoalkeeper = (player.number === 1) ? 'goalkeeper' : '';
+            
             $('.pitch.horizontal').append(`
-                <div class="player attacker" id="${player.id}" 
+                <div class="player attacker ${isGoalkeeper}" id="${player.id}" 
                      style="left: ${player.left}; top: ${player.top};">${player.number}</div>
             `);
         });
@@ -528,10 +602,13 @@ function loadStepWithoutAnimation(step) {
     // Dodaj broniących
     if (step.positions && step.positions.defenders) {
         step.positions.defenders.forEach(player => {
+            // Dodaj klasę goalkeeper dla bramkarza (numer 1)
+            const isGoalkeeper = (player.number === 1) ? 'goalkeeper' : '';
+            
             $('.pitch.horizontal').append(`
-                <div class="player defender" id="${player.id}" 
+                <div class="player defender ${isGoalkeeper}" id="${player.id}" 
                      style="left: ${player.left}; top: ${player.top};">${player.number}</div>
-        `);
+            `);
         });
     }
 }

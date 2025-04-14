@@ -73,6 +73,8 @@ body {
     position: relative;
     width: 100%;
     padding-top: 66.67%; /* 3:2 aspect ratio for horizontal pitch */
+    height: 100%;
+    min-height: 540px;
 }
 
 .pitch {
@@ -117,6 +119,7 @@ body {
     border: 2px solid white;
     border-radius: 5px;
     cursor: default;
+    transition: all 0.3s ease-in-out;
 }
 
 /* Player dot styling */
@@ -217,6 +220,7 @@ body {
 
 .builder-pitch .player {
     cursor: move;
+    transition: all 0.3s ease-in-out;
 }
 
 /* Step buttons styling */
@@ -342,6 +346,11 @@ body {
     height: calc(100vh - 100px); /* Adjusted for smaller navbar */
     display: flex;
     flex-direction: column;
+    transition: all 0.2s ease-in-out;
+}
+
+.card:hover {
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
 }
 
 .card-header {
@@ -407,6 +416,7 @@ button {
     box-shadow: 0 0 5px rgba(0,0,0,0.5);
     cursor: move;
     background-image: radial-gradient(circle, white 0%, white 70%, #333 70%, #333 100%);
+    transition: all 0.3s ease-in-out;
 }
 
 /* Style dla przycisków kroków */
@@ -619,4 +629,39 @@ button {
 /* Klasa dla animacji paraboli */
 .ball.high-ball-animation {
     animation: ballParabola 0.6s ease-out;
+}
+
+/* Dodaj te style do pliku css/styles.css */
+.card {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease-in-out;
+}
+
+.card:hover {
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+}
+
+.list-group-item {
+    transition: background-color 0.2s;
+}
+
+.list-group-item:hover {
+    background-color: rgba(0, 123, 255, 0.05);
+}
+
+.btn-group-sm .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+}
+
+/* Zwiększ wysokość boiska */
+.tactical-board.horizontal {
+    height: 100%;
+    min-height: 540px;
+}
+
+/* Popraw wyświetlanie piłki i graczy */
+.builder-pitch .player, 
+.builder-pitch .ball {
+    transition: all 0.3s ease-in-out;
 }

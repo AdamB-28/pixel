@@ -17,6 +17,9 @@ let currentStep = 0;
 let attackerCount = 5;
 let defenderCount = 5;
 
+// Dodaj zmienną do śledzenia ID edytowanej zagrywki
+let editingPlayId = null;
+
 $(document).ready(function() {
     // Initialize the builder
     initializeBuilder();
@@ -28,42 +31,70 @@ $(document).ready(function() {
     updateStepsButtons();
 });
 
-// Poprawiona wersja funkcji initializeBuilder - usuwamy toggle dla drag mode
-function initializeBuilder() {
-    // Create an empty play with one step
-    currentPlayBuilder = {
-        name: "",
-        steps: [{
-            positions: {
-                attackers: [],
-                defenders: [],
-                ball: { left: "50%", top: "50%" }
-            },
-            highBall: false // Domyślnie false
-        }]
-    };
+// Zaktualizowany model danych z polem description
+function initializeBuilder(playToEdit = null) {
+    console.log("Initializing builder with play:", playToEdit);
+    
+    // Resetuj ID edytowanej zagrywki jeśli tworzymy nową zagrywkę
+    if (!playToEdit) {
+        editingPlayId = null;
+    }
+    
+    if (playToEdit) {
+        // Użyj istniejącej zagrywki
+        currentPlayBuilder = JSON.parse(JSON.stringify(playToEdit));
+        
+        // Ustaw liczby zawodników, jeśli są zapisane
+        if (currentPlayBuilder.playerCounts) {
+            $('#attack-players').val(currentPlayBuilder.playerCounts.attackers);
+            $('#defense-players').val(currentPlayBuilder.playerCounts.defenders);
+            
+            // Zaktualizuj globalne zmienne
+            attackerCount = currentPlayBuilder.playerCounts.attackers;
+            defenderCount = currentPlayBuilder.playerCounts.defenders;
+        }
+    } else {
+        // Utwórz nową pustą zagrywkę
+        currentPlayBuilder = {
+            name: "",
+            steps: [{
+                positions: {
+                    attackers: [],
+                    defenders: [],
+                    ball: { left: "50%", top: "50%" }
+                },
+                description: "Brak opisu",
+                highBall: false
+            }],
+            playerCounts: {
+                attackers: parseInt($('#attack-players').val() || 5),
+                defenders: parseInt($('#defense-players').val() || 5)
+            }
+        };
+        
+        // Zaktualizuj globalne zmienne
+        attackerCount = currentPlayBuilder.playerCounts.attackers;
+        defenderCount = currentPlayBuilder.playerCounts.defenders;
+    }
     
     // Reset the form
-    $('#play-name').val('');
+    $('#play-name').val(currentPlayBuilder.name);
     
-    // Get player counts
-    attackerCount = parseInt($('#attack-players').val() || 5);
-    defenderCount = parseInt($('#defense-players').val() || 5);
-    
-    // Clear the pitch
-    $('.builder-pitch').empty();
-    
-    // Add players to the pitch
-    addPlayersToBuilder(attackerCount, defenderCount);
-    
-    // Reset current step
+    // Reset the current step
     currentStep = 0;
     
-    // Update steps buttons
+    // Ustaw opis pierwszego kroku, jeśli istnieje
+    if (currentPlayBuilder.steps[0] && currentPlayBuilder.steps[0].description) {
+        $('#step-description').val(currentPlayBuilder.steps[0].description);
+    } else {
+        $('#step-description').val('Brak opisu');
+    }
+    
+    // Update step buttons
     updateStepsButtons();
     
-    // Zawsze aktywuj tryb przeciągania
-    enableDragMode();
+    // Load the first step positions
+    loadStepPositions(0);
 }
 
 // Nowa funkcja do ustawiania pozycji elementów
@@ -75,7 +106,7 @@ function setElementPosition($element, left, top) {
     });
 }
 
-// Poprawiona funkcja do zapisywania kroków
+// Poprawiona funkcja saveCurrentStep
 function saveCurrentStep() {
     console.log("Saving current step:", currentStep);
     
@@ -90,37 +121,53 @@ function saveCurrentStep() {
         return false;
     }
     
-    // Pobierz pozycję jako wartości CSS
     const ballLeft = $ball.css('left');
     const ballTop = $ball.css('top');
     
     // Zapisz pozycje atakujących
-    $('.builder-pitch .player.attacker').each(function(index) {
+    $('.builder-pitch .player.attacker').each(function() {
         const $player = $(this);
         const left = $player.css('left');
         const top = $player.css('top');
         
+        // Pobierz rzeczywisty numer z tekstu elementu
+        const number = parseInt($player.text()) || 0;
+        
+        // Sprawdź, czy to bramkarz (numer 1)
+        const isGoalkeeper = (number === 1);
+        
         attackers.push({
-            id: $player.attr('id') || `builder-attacker-${index + 1}`,
+            id: $player.attr('id'),
             left: left,
             top: top,
-            number: index + 1
+            number: number,
+            isGoalkeeper: isGoalkeeper // Dodaj flagę bramkarza
         });
     });
     
     // Zapisz pozycje broniących
-    $('.builder-pitch .player.defender').each(function(index) {
+    $('.builder-pitch .player.defender').each(function() {
         const $player = $(this);
         const left = $player.css('left');
         const top = $player.css('top');
         
+        // Pobierz rzeczywisty numer z tekstu elementu
+        const number = parseInt($player.text()) || 0;
+        
+        // Sprawdź, czy to bramkarz (numer 1)
+        const isGoalkeeper = (number === 1);
+        
         defenders.push({
-            id: $player.attr('id') || `builder-defender-${index + 1}`,
+            id: $player.attr('id'),
             left: left,
             top: top,
-            number: index + 1
+            number: number,
+            isGoalkeeper: isGoalkeeper // Dodaj flagę bramkarza
         });
     });
+    
+    // Zapisz opis kroku
+    const stepDescription = $('#step-description').val().trim() || "Brak opisu";
     
     // Zachowaj wcześniej ustawioną flagę highBall (jeśli istnieje)
     const highBall = currentPlayBuilder.steps[currentStep] && 
@@ -137,60 +184,58 @@ function saveCurrentStep() {
                 top: ballTop
             }
         },
-        highBall: highBall // Zachowaj wartość flagi
+        description: stepDescription,
+        highBall: highBall
     };
     
     return true;
 }
 
-// Aktualizacja funkcji loadStepPositions
+// Poprawiona funkcja loadStepPositions
 function loadStepPositions(stepIndex) {
-    const step = currentPlayBuilder.steps[stepIndex];
+    console.log("Loading step positions for step:", stepIndex);
     
-    if (!step || !step.positions) {
+    // Sprawdź, czy mamy dane tego kroku
+    if (!currentPlayBuilder.steps[stepIndex] || !currentPlayBuilder.steps[stepIndex].positions) {
         console.error("No positions data for step", stepIndex);
         return;
     }
     
-    // Pobierz aktualne liczby graczy
-    const attackerCount = parseInt($('#attack-players').val() || 5);
-    const defenderCount = parseInt($('#defense-players').val() || 5);
+    const step = currentPlayBuilder.steps[stepIndex];
     
-    // Zachowaj istniejącą piłkę lub utwórz nową
-    if ($('.builder-pitch .ball').length === 0) {
-        if (step.positions.ball) {
-            $('.builder-pitch').append(`
-                <div class="ball" id="game-ball" 
-                     style="left: ${step.positions.ball.left}; top: ${step.positions.ball.top};"></div>
-            `);
-        } else {
-            $('.builder-pitch').append(`
-                <div class="ball" id="game-ball" style="left: 50%; top: 50%"></div>
-            `);
-        }
-    } else if (step.positions.ball) {
-        $('.builder-pitch .ball').css({
-            'left': step.positions.ball.left,
-            'top': step.positions.ball.top
-        });
+    // ZMIANA: Użyj globalnych zmiennych zamiast pobierać je z formularza za każdym razem
+    console.log("Using global variables: attackerCount =", attackerCount, "defenderCount =", defenderCount);
+    
+    // Wyczyść boisko przed dodaniem nowych elementów
+    $('.builder-pitch .player, .builder-pitch .ball').remove();
+    
+    // Dodaj piłkę
+    if (step.positions.ball) {
+        $('.builder-pitch').append(`
+            <div class="ball" id="game-ball" 
+                 style="left: ${step.positions.ball.left}; top: ${step.positions.ball.top};"></div>
+        `);
+    } else {
+        // Jeśli nie ma pozycji piłki, dodaj ją na środku
+        $('.builder-pitch').append(`
+            <div class="ball" id="game-ball" style="left: 50%; top: 50%"></div>
+        `);
     }
     
-    // Usuń istniejących graczy
-    $('.builder-pitch .player').remove();
-    
-    // Dodaj atakujących zgodnie z zapisanymi pozycjami
-    if (step.positions.attackers) {
-        // Używamy tylko tylu atakujących, ilu jest ustawionych w selektorze
+    // ZMIANA: Używaj globalnej zmiennej attackerCount zamiast lokalnej
+    // Dodaj atakujących
+    if (step.positions.attackers && step.positions.attackers.length > 0) {
+        // Używamy tylko tylu atakujących, ilu jest w globalnej zmiennej
         const attackersToUse = step.positions.attackers.slice(0, attackerCount);
         
         // Dodaj graczy z zapisanymi pozycjami
         attackersToUse.forEach((player, index) => {
-            // Dodaj klasę goalkeeper dla bramkarza (numer 1)
-            const isGoalkeeper = (index + 1 === 1) ? 'goalkeeper' : '';
+            // Sprawdź, czy to bramkarz (numer 1) - zawsze dodaj klasę
+            const isGoalkeeper = (player.number === 1 || player.isGoalkeeper === true) ? 'goalkeeper' : '';
             
             $('.builder-pitch').append(`
                 <div class="player attacker ${isGoalkeeper}" id="${player.id || 'builder-attacker-' + (index + 1)}" 
-                     style="left: ${player.left}; top: ${player.top};">${index + 1}</div>
+                     style="left: ${player.left}; top: ${player.top};">${player.number || index + 1}</div>
             `);
         });
         
@@ -221,19 +266,20 @@ function loadStepPositions(stepIndex) {
         }
     }
     
-    // Dodaj broniących zgodnie z zapisanymi pozycjami - podobna logika
-    if (step.positions.defenders) {
-        // Używamy tylko tylu broniących, ilu jest ustawionych w selektorze
+    // ZMIANA: Używaj globalnej zmiennej defenderCount zamiast lokalnej
+    // Dodaj broniących
+    if (step.positions.defenders && step.positions.defenders.length > 0) {
+        // Używamy tylko tylu broniących, ilu jest w globalnej zmiennej
         const defendersToUse = step.positions.defenders.slice(0, defenderCount);
         
         // Dodaj graczy z zapisanymi pozycjami
         defendersToUse.forEach((player, index) => {
-            // Dodaj klasę goalkeeper dla bramkarza (numer 1)
-            const isGoalkeeper = (index + 1 === 1) ? 'goalkeeper' : '';
+            // Sprawdź, czy to bramkarz (numer 1) - zawsze dodaj klasę
+            const isGoalkeeper = (player.number === 1 || player.isGoalkeeper === true) ? 'goalkeeper' : '';
             
             $('.builder-pitch').append(`
                 <div class="player defender ${isGoalkeeper}" id="${player.id || 'builder-defender-' + (index + 1)}" 
-                     style="left: ${player.left}; top: ${player.top};">${index + 1}</div>
+                     style="left: ${player.left}; top: ${player.top};">${player.number || index + 1}</div>
             `);
         });
         
@@ -266,16 +312,61 @@ function loadStepPositions(stepIndex) {
     
     // Aktywuj tryb przeciągania
     enableDragMode();
+    
+    // Aktualizuj opis kroku dla bieżącego kroku
+    if (currentPlayBuilder.steps[stepIndex].description) {
+        $('#step-description').val(currentPlayBuilder.steps[stepIndex].description);
+    } else {
+        $('#step-description').val('Brak opisu');
+    }
+    
+    // Aktualizuj stan checkbox highBall (jeśli jest używany)
+    if ($('#high-ball-checkbox').length > 0) {
+        const isHighBall = currentPlayBuilder.steps[stepIndex].highBall === true;
+        $('#high-ball-checkbox').prop('checked', isHighBall);
+    }
+    
+    console.log("Step positions loaded successfully");
 }
 
-// Poprawiona funkcja dla trybu przeciągania
+// Zoptymalizowana funkcja enableDragMode dla lepszej wydajności
 function enableDragMode() {
+    // Najpierw zniszcz istniejące instancje draggable aby uniknąć duplikacji
+    try {
+        $('.builder-pitch .player, .builder-pitch .ball').draggable('destroy');
+    } catch (e) {
+        // Ignoruj błąd jeśli draggable nie był zainicjalizowany
+    }
+    
+    // Zainicjuj draggable z optymalnymi ustawieniami
     $('.builder-pitch .player, .builder-pitch .ball').draggable({
         containment: ".builder-pitch",
         cursor: "move",
+        scroll: false,          // Wyłącz przewijanie podczas przesuwania
+        refreshPositions: false, // Nie przeliczaj pozycji wszystkich elementów przy każdym ruchu
+        distance: 2,            // Minimalny dystans aby rozpocząć przeciąganie
+        delay: 50,              // Mały delay dla ustabilizowania
+        start: function(event, ui) {
+            // Usuń jakiekolwiek przejścia CSS które mogłyby spowalniać
+            $(this).css({
+                'transition': 'none',
+                'will-change': 'left, top' // Podpowiedź dla przeglądarki co się zmieni
+            });
+        },
         stop: function(event, ui) {
-            // Po zakończeniu przeciągania, zapisz aktualną pozycję
-            saveCurrentStep();
+            // Po zakończeniu przeciągania, zresetuj style i odrocz zapisywanie
+            $(this).css({
+                'will-change': 'auto'
+            });
+            
+            // Oznacz jako przeciągnięty, ale NIE zapisuj natychmiast
+            $(this).attr('data-dragged', 'true');
+            
+            // Odroczone zapisywanie dla lepszej wydajności
+            clearTimeout(window.saveTimeout);
+            window.saveTimeout = setTimeout(function() {
+                saveCurrentStep();
+            }, 500); // Zapisz po 500ms bezczynności
         }
     });
 }
@@ -295,8 +386,11 @@ function setupEventListeners() {
     
     // Handle player count changes
     $('#attack-players, #defense-players').on('change', function() {
+        // Aktualizuj globalne zmienne
         attackerCount = parseInt($('#attack-players').val() || 5);
         defenderCount = parseInt($('#defense-players').val() || 5);
+        
+        console.log("Player counts updated: attackerCount=", attackerCount, "defenderCount=", defenderCount);
         
         // Update players on the pitch
         addPlayersToBuilder(attackerCount, defenderCount);
@@ -330,9 +424,23 @@ function setupEventListeners() {
     });
     
     // Load saved play for editing
-    $(document).on('click', '.edit-play', function() {
+    $(document).on('click', '.edit-play', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Pobierz ID zagrywki bezpośrednio z atrybutu data-play przycisku
         const playId = $(this).data('play');
-        loadPlayForEditing(playId);
+        console.log("Edit button clicked for play:", playId);
+        
+        // Załaduj zagrywkę do edycji
+        if (editPlay(playId)) {
+            console.log("Zagrywka załadowana pomyślnie");
+            // Dodaj informację o powodzeniu
+            const playName = currentPlayBuilder.name;
+            alert(`Zagrywka "${playName}" została załadowana do edycji.`);
+        } else {
+            alert("Nie udało się załadować zagrywki do edycji.");
+        }
     });
     
     // Delegation for delete step button clicks
@@ -341,6 +449,17 @@ function setupEventListeners() {
         
         const stepIndex = parseInt($(this).data('step'));
         deleteStep(stepIndex);
+    });
+
+    // Obsługa przycisku duplikacji
+    $(document).on('click', '.duplicate-play', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const playId = $(this).data('play');
+        console.log("Duplicate button clicked for play:", playId);
+        
+        duplicatePlay(playId);
     });
 }
 
@@ -531,25 +650,6 @@ function addPlayersToBuilder(attackers, defenders) {
     saveCurrentStep();
 }
 
-// Poprawiona funkcja enableDragMode
-function enableDragMode() {
-    $('.builder-pitch .player, .builder-pitch .ball').draggable({
-        containment: ".builder-pitch",
-        cursor: "move",
-        // Usunięcie wcześniejszej korekcji, która powodowała problemy
-        start: function(event, ui) {
-            // Nie zmieniaj transform podczas przeciągania
-        },
-        drag: function(event, ui) {
-            // Nie potrzeba korekcji
-        },
-        stop: function(event, ui) {
-            // Nie potrzeba korekcji
-            $(this).attr('data-dragged', 'true');
-        }
-    });
-}
-
 // NAPRAWIONA funkcja dodawania kroku
 function addNewStep() {
     console.log("Adding new step after step:", currentStep);
@@ -562,6 +662,12 @@ function addNewStep() {
     
     // Kopiuj bieżący krok jako szablon dla nowego
     const currentStepData = JSON.parse(JSON.stringify(currentPlayBuilder.steps[currentStep]));
+    
+    // Zresetuj opis dla nowego kroku
+    currentStepData.description = "Brak opisu";
+    
+    // Zawsze resetuj wysokie podanie dla nowego kroku
+    currentStepData.highBall = false;
     
     // Dodaj nowy krok jako kopię bieżącego
     currentPlayBuilder.steps.push(currentStepData);
@@ -599,10 +705,11 @@ function resetStepPositions(stepIndex) {
     alert(`Krok ${stepIndex + 1} został zresetowany do pozycji z kroku ${stepIndex}!`);
 }
 
+// W funkcji changeBuilderStep
 function changeBuilderStep(stepIndex) {
     console.log("Changing to step:", stepIndex);
     
-    // Zapisz bieżący krok
+    // Zapisz aktualny krok przed zmianą
     saveCurrentStep();
     
     // Aktualizuj bieżący krok
@@ -612,8 +719,15 @@ function changeBuilderStep(stepIndex) {
     $('.step-btn').removeClass('btn-primary').addClass('btn-secondary');
     $(`.step-btn[data-step="${stepIndex}"]`).removeClass('btn-secondary').addClass('btn-primary');
     
+    // Załaduj opis kroku
+    const stepDescription = currentPlayBuilder.steps[stepIndex].description || "Brak opisu";
+    $('#step-description').val(stepDescription);
+    
     // Załaduj pozycje graczy
     loadStepPositions(stepIndex);
+    
+    // Upewnij się, że bramkarze mają odpowiednią klasę
+    ensureGoalkeeperClasses();
 }
 
 // Dodaj nową funkcję do kopiowania z poprzedniego kroku
@@ -634,12 +748,30 @@ function copyFromPreviousStep(stepIndex) {
         return;
     }
     
+    // Zapisz aktualną wartość highBall i opis przed nadpisaniem
+    const currentHighBall = currentPlayBuilder.steps[stepIndex].highBall;
+    const currentDescription = currentPlayBuilder.steps[stepIndex].description || "Brak opisu";
+    
+    // Możemy zapytać, czy skopiować tylko pozycje, czy również opis
+    const copyDescription = confirm("Czy chcesz skopiować również opis kroku?");
+    
     // Kopiuj pozycje z poprzedniego kroku
     currentPlayBuilder.steps[stepIndex] = JSON.parse(JSON.stringify(prevStep));
     
+    // Przywróć oryginalne wartości jeśli potrzeba
+    currentPlayBuilder.steps[stepIndex].highBall = currentHighBall;
+    
+    if (!copyDescription) {
+        currentPlayBuilder.steps[stepIndex].description = currentDescription;
+    }
+    
     // Jeśli aktualnie przeglądany krok to ten, który kopiujemy, załaduj go na boisko
     if (currentStep === stepIndex) {
+        // Załaduj pozycje
         loadStepPositions(stepIndex);
+        
+        // Zaktualizuj pole opisu
+        $('#step-description').val(currentPlayBuilder.steps[stepIndex].description || "Brak opisu");
     }
     
     alert(`Krok ${stepIndex + 1} został zaktualizowany z pozycjami z kroku ${stepIndex}!`);
@@ -647,7 +779,7 @@ function copyFromPreviousStep(stepIndex) {
 
 // Naprawiona funkcja savePlay
 function savePlay() {
-    console.log("Saving play");
+    console.log("Saving play, editing mode:", editingPlayId !== null);
     
     // Zapisz bieżący krok
     if (!saveCurrentStep()) {
@@ -672,13 +804,19 @@ function savePlay() {
     // Zaktualizuj nazwę zagrywki
     currentPlayBuilder.name = playName;
     
-    // Wygeneruj unikalny ID dla zagrywki
-    const playId = 'play_' + Date.now();
+    // Zapisz liczbę zawodników w modelu danych
+    currentPlayBuilder.playerCounts = {
+        attackers: parseInt($('#attack-players').val() || 5),
+        defenders: parseInt($('#defense-players').val() || 5)
+    };
     
     // Pobierz zapisane zagrywki
     let savedPlays = loadPlaysFromStorage();
     
-    // Dodaj nową zagrywkę
+    // Określ ID zagrywki - użyj istniejącego ID lub wygeneruj nowy
+    const playId = editingPlayId || ('play_' + Date.now());
+    
+    // Zapisz zagrywkę pod określonym ID
     savedPlays[playId] = currentPlayBuilder;
     
     // Zapisz zagrywki w localStorage
@@ -686,10 +824,16 @@ function savePlay() {
         // Zaktualizuj listę zapisanych zagrywek
         updateSavedPlaysList();
         
-        // Zainicjuj nową zagrywkę
+        // Zainicjuj nową zagrywkę i resetuj tryb edycji
         initializeBuilder();
+        editingPlayId = null;
         
-        alert(`Zagrywka "${playName}" została zapisana!`);
+        // Wyświetl odpowiedni komunikat
+        if (editingPlayId) {
+            alert(`Zagrywka "${playName}" została zaktualizowana!`);
+        } else {
+            alert(`Zagrywka "${playName}" została zapisana!`);
+        }
     } else {
         alert('Wystąpił błąd podczas zapisywania zagrywki. Spróbuj ponownie.');
     }
@@ -700,58 +844,43 @@ function updateSavedPlaysList() {
     const $savedPlays = $('#saved-plays');
     $savedPlays.empty();
     
-    let savedPlays;
-    try {
-        savedPlays = JSON.parse(localStorage.getItem('plays') || '{}');
-    } catch (e) {
-        console.error("Error parsing saved plays:", e);
-        savedPlays = {};
-    }
+    let savedPlays = loadPlaysFromStorage();
     
     if (Object.keys(savedPlays).length === 0) {
         $savedPlays.append(`
-            <div class="text-center text-muted">
-                <p>Brak zapisanych zagrywek</p>
+            <div class="text-center text-muted p-3">
+                <i class="bi bi-info-circle me-2"></i>
+                <p class="mb-0">Brak zapisanych zagrywek</p>
             </div>
         `);
     } else {
-        // Dodaj checkbox "zaznacz wszystkie"
-        $savedPlays.append(`
-            <div class="list-group-item bg-light">
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="select-all-plays">
-                    <label class="form-check-label" for="select-all-plays">
-                        <strong>Zaznacz wszystkie</strong>
-                    </label>
-                </div>
-            </div>
-        `);
-        
         for (const [playId, play] of Object.entries(savedPlays)) {
             $savedPlays.append(`
-                <div class="list-group-item">
+                <div class="list-group-item py-2">
                     <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <input class="form-check-input play-checkbox" type="checkbox" data-play="${playId}" id="check-${playId}">
-                            <label class="form-check-label ms-2" for="check-${playId}">
-                                <h5 class="mb-1 d-inline">${play.name}</h5>
-                            </label>
+                        <div class="d-flex align-items-center">
+                            <input class="form-check-input me-2" type="checkbox" data-play="${playId}" id="check-${playId}">
+                            <div>
+                                <h6 class="mb-0">${play.name}</h6>
+                                <small class="text-muted">${play.steps.length} krok${play.steps.length === 1 ? '' : 'ów'}</small>
+                            </div>
                         </div>
-                        <div>
-                            <button class="btn btn-sm btn-primary edit-play" data-play="${playId}">Edytuj</button>
-                            <button class="btn btn-sm btn-danger delete-play" data-play="${playId}">Usuń</button>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-sm btn-outline-primary edit-play" data-play="${playId}" title="Edytuj">
+                                <i class="bi bi-pencil-fill"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-success duplicate-play" data-play="${playId}" title="Duplikuj">
+                                <i class="bi bi-files"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger delete-play" data-play="${playId}" title="Usuń">
+                                <i class="bi bi-trash-fill"></i>
+                            </button>
                         </div>
                     </div>
-                    <p class="mb-1">${play.steps.length} kroków</p>
                 </div>
             `);
         }
     }
-    
-    // Obsługa zaznaczania wszystkich zagrywek
-    $('#select-all-plays').on('change', function() {
-        $('.play-checkbox').prop('checked', $(this).is(':checked'));
-    });
 }
 
 function loadPlayForEditing(playId) {
@@ -1171,4 +1300,132 @@ $(document).ready(function() {
         
         reader.readAsText(file);
     });
+});
+
+// Funkcja do edycji zagrywki - dodaj lub aktualizuj tę funkcję w builder.js
+function editPlay(playId) {
+    console.log("Editing play:", playId);
+    
+    try {
+        // Załaduj wszystkie zagrywki z właściwej funkcji
+        const savedPlays = loadPlaysFromStorage(); // Zmiana tutaj
+        
+        // Znajdź zagrywkę do edycji
+        const playToEdit = savedPlays[playId];
+        
+        if (!playToEdit) {
+            console.error(`Zagrywka o ID ${playId} nie została znaleziona`);
+            return false;
+        }
+        
+        // Zapisz ID edytowanej zagrywki
+        editingPlayId = playId;
+        
+        // Ustaw aktualną zagrywkę do edycji
+        currentPlayBuilder = JSON.parse(JSON.stringify(playToEdit));
+        
+        // Ustaw nazwę zagrywki
+        $('#play-name').val(currentPlayBuilder.name);
+        
+        // Ustaw liczby zawodników, jeśli są zapisane
+        if (currentPlayBuilder.playerCounts) {
+            $('#attack-players').val(currentPlayBuilder.playerCounts.attackers);
+            $('#defense-players').val(currentPlayBuilder.playerCounts.defenders);
+            
+            // Zaktualizuj globalne zmienne
+            attackerCount = currentPlayBuilder.playerCounts.attackers;
+            defenderCount = currentPlayBuilder.playerCounts.defenders;
+        }
+        
+        // Ustaw aktualny krok na pierwszy
+        currentStep = 0;
+        
+        // Zaktualizuj przyciski kroków
+        updateStepsButtons();
+        
+        // Załaduj pierwszy krok
+        loadStepPositions(0);
+        
+        console.log("Zagrywka załadowana do edycji", currentPlayBuilder);
+        return true;
+    } catch (e) {
+        console.error("Błąd podczas ładowania zagrywki do edycji:", e);
+        return false;
+    }
+}
+
+// Funkcja do duplikowania zagrywki - poprawiona wersja
+function duplicatePlay(playId) {
+    console.log("Duplicating play:", playId);
+    
+    try {
+        // Załaduj wszystkie zagrywki
+        const savedPlays = loadPlaysFromStorage();
+        
+        // Znajdź zagrywkę do zduplikowania
+        const playToDuplicate = savedPlays[playId];
+        
+        if (!playToDuplicate) {
+            console.error(`Zagrywka o ID ${playId} nie została znaleziona`);
+            return false;
+        }
+        
+        // Utwórz kopię zagrywki
+        const duplicatedPlay = JSON.parse(JSON.stringify(playToDuplicate));
+        
+        // Upewnij się, że właściwość playerCounts istnieje
+        if (!duplicatedPlay.playerCounts) {
+            duplicatedPlay.playerCounts = {
+                attackers: 5,
+                defenders: 5
+            };
+        }
+        
+        console.log("Duplicated play playerCounts:", duplicatedPlay.playerCounts);
+        
+        // Zmień nazwę, aby wskazać, że to kopia
+        duplicatedPlay.name = `${duplicatedPlay.name} (kopia)`;
+        
+        // Wygeneruj nowe ID
+        const newPlayId = 'play_' + Date.now();
+        
+        // Dodaj zduplikowaną zagrywkę do zapisanych
+        savedPlays[newPlayId] = duplicatedPlay;
+        
+        // Zapisz zagrywki w localStorage
+        if (savePlaysToStorage(savedPlays)) {
+            // Zaktualizuj listę zagrywek
+            updateSavedPlaysList();
+            
+            alert(`Zagrywka "${duplicatedPlay.name}" została utworzona jako kopia.`);
+            return true;
+        } else {
+            alert('Wystąpił błąd podczas zapisywania zduplikowanej zagrywki.');
+            return false;
+        }
+    } catch (e) {
+        console.error("Błąd podczas duplikowania zagrywki:", e);
+        alert('Wystąpił błąd podczas duplikowania zagrywki.');
+        return false;
+    }
+}
+
+// Pomocnicza funkcja zapewniająca, że bramkarze są poprawnie oznaczeni
+function ensureGoalkeeperClasses() {
+    // Upewnij się, że wszyscy gracze z numerem 1 mają klasę goalkeeper
+    $('.player').each(function() {
+        const $player = $(this);
+        const number = parseInt($player.text()) || 0;
+        
+        if (number === 1) {
+            $player.addClass('goalkeeper');
+        } else {
+            $player.removeClass('goalkeeper');
+        }
+    });
+}
+
+// Wywołaj tę funkcję po załadowaniu kroku i przy zmianach numerów graczy
+$(document).on('DOMNodeInserted', '.player', function() {
+    ensureGoalkeeperClasses();
 });
