@@ -1,0 +1,164 @@
+afc\builder.html -->
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OKS Tablice - Zbuduj</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Full-width Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark w-100">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">OKS Tablice Taktyczne</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">Menu</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="plays.html">Zagrywki</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="builder.html">Zbuduj</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Formacje</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main content starts after the navbar -->
+    <div class="container-fluid mt-3">
+        <div class="row">
+            <!-- Left side - Builder Controls -->
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-header bg-dark text-white">
+                        <h4>Ustawienia</h4>
+                    </div>
+                    <div class="card-body">
+                        <form id="builder-form">
+                            <div class="mb-3">
+                                <label for="play-name" class="form-label">Nazwa zagrywki</label>
+                                <input type="text" class="form-control" id="play-name" placeholder="np. Rzut Rożny 2">
+                            </div>
+                            
+                            <div class="action-buttons mb-3">
+                                <button type="button" id="save-play" class="btn btn-success">Zapisz zagrywkę</button>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Kroki</label>
+                                <div class="d-flex flex-wrap align-items-center mb-2">
+                                    <div id="steps-buttons" class="btn-toolbar">
+                                        <!-- Tutaj będą dynamicznie dodawane przyciski kroków -->
+                                    </div>
+                                    <button type="button" id="add-step" class="btn btn-success">+</button>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Liczba zawodników</label>
+                                <div class="row">
+                                    <div class="col">
+                                        <label for="attack-players" class="form-label">Atakujący</label>
+                                        <input type="number" class="form-control" id="attack-players" min="1" max="11" value="5">
+                                    </div>
+                                    <div class="col">
+                                        <label for="defense-players" class="form-label">Broniący</label>
+                                        <input type="number" class="form-control" id="defense-players" min="1" max="11" value="5">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Middle - Tactical Board (horizontal orientation) -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-dark text-white">
+                        <h4>Edytor zagrywek</h4>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="tactical-board horizontal">
+                            <!-- Horizontal pitch -->
+                            <div class="pitch horizontal builder-pitch">
+                                <!-- Players will be added dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right side - Saved plays -->
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                        <h4>Zapisane zagrywki</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group" id="saved-plays">
+                            <!-- Saved plays will be added dynamically -->
+                            <div class="text-center text-muted">
+                                <p>Brak zapisanych zagrywek</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Dodaj przyciski eksportu/importu pod listą zagrywek -->
+                    <div class="card-footer bg-light">
+                        <div class="d-flex justify-content-between">
+                            <button id="export-plays" class="btn btn-info">Eksportuj</button>
+                            <button id="import-btn" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#importExportModal">Importuj</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add import/export functionality to the bottom of the page -->
+    <div class="modal fade" id="importExportModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Eksport/Import zagrywek</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="plays-json" class="form-label">Zagrywki (JSON)</label>
+                        <textarea class="form-control" id="plays-json" rows="10"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="file-input" class="form-label">Lub wczytaj z pliku</label>
+                        <input class="form-control" type="file" id="file-input" accept=".json">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Zamknij</button>
+                    <button type="button" class="btn btn-primary" id="import-plays">Importuj</button>
+                    <button type="button" class="btn btn-info" id="save-to-file">Zapisz do pliku</button>
+                    <button type="button" class="btn btn-success" id="copy-json">Kopiuj</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery-ui@1.13.2/dist/jquery-ui.min.js"></script>
+    <script src="js/tactics.js"></script>
+    <script src="js/builder.js"></script>
+</body>
+</html>

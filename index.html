@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OKS Tablice</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Full-width Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark w-100">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">OKS Tablice Taktyczne</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="index.html">Menu</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="plays.html">Zagrywki</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="builder.html">Zbuduj</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Formacje</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main content starts after the navbar -->
+    <div class="container-fluid mt-3">
+        <div class="row">
+            <!-- Left side - Tactical Board -->
+            <div class="col-md-7">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h4>Tablica taktyczna</h4>
+                            <div class="btn-group">
+                                <button id="attack-btn" class="btn btn-light">Atak</button>
+                                <button id="defense-btn" class="btn btn-light">Obrona</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="tactical-board">
+                            <!-- Pitch will be a green rectangle for now -->
+                            <div class="pitch">
+                                <!-- Players in 1-3-4-3 formation -->
+                                <div class="player" id="player1" data-position="GK"></div>
+                                
+                                <div class="player" id="player2" data-position="LB"></div>
+                                <div class="player" id="player3" data-position="CB"></div>
+                                <div class="player" id="player4" data-position="RB"></div>
+                                
+                                <div class="player" id="player5" data-position="LM"></div>
+                                <div class="player" id="player6" data-position="CM"></div>
+                                <div class="player" id="player7" data-position="CM"></div>
+                                <div class="player" id="player8" data-position="RM"></div>
+                                
+                                <div class="player" id="player9" data-position="LW"></div>
+                                <div class="player" id="player10" data-position="ST"></div>
+                                <div class="player" id="player11" data-position="RW"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right side - Player Description -->
+            <div class="col-md-5">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h4>Wytyczne</h4>
+                    </div>
+                    <div class="card-body">
+                        <div id="player-description" class="description">
+                            <h3>Opis zawodniaka</h3>
+                            <div id="player-info">
+                                <p>Kliknij zawodnika na boisku, aby dowiedzieć się więcej</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/tactics.js"></script>
+</body>
+</html>
