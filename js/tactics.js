@@ -188,9 +188,9 @@ const formations = {
         player7: { left: '60%', top: '50%' },
         player8: { left: '80%', top: '60%' },
 
-        player9: { left: '20%', top: '30%' },
-        player10: { left: '50%', top: '20%' },
-        player11: { left: '80%', top: '30%' }
+        player9: { left: '40%', top: '20%' },
+        player10: { left: '50%', top: '35%' },
+        player11: { left: '60%', top: '20%' }
     },
     attack: {
         player1: { left: '50%', top: '90%' },
@@ -204,9 +204,9 @@ const formations = {
         player7: { left: '60%', top: '45%' },
         player8: { left: '80%', top: '35%' },
 
-        player9: { left: '35%', top: '20%' },
-        player10: { left: '50%', top: '15%' },
-        player11: { left: '65%', top: '20%' }
+        player9: { left: '40%', top: '20%' },
+        player10: { left: '50%', top: '35%' },
+        player11: { left: '60%', top: '20%' }
     }
 };
 
