@@ -457,6 +457,23 @@ $(document).ready(function() {
         
         reader.readAsText(file);
     });
+    
+    ensureConsistentPitchDisplay();
+    
+    $(window).on('resize', ensureConsistentPitchDisplay);
+    
+    // Ulepszenie animacji jQuery
+    $.fx.speeds._default = 600;
+    
+    // Poprawne działanie animate na transform
+    $.cssHooks.transform = {
+        get: function(elem, computed, extra) {
+            return $.css(elem, 'transform');
+        },
+        set: function(elem, value) {
+            elem.style.transform = value;
+        }
+    };
 });
 
 // New function to populate the plays menu
@@ -613,50 +630,13 @@ function loadStepWithoutAnimation(step) {
     }
 }
 
-// Nowa funkcja do animowania przejścia między krokami
+// Użyj tej zoptymalizowanej wersji funkcji animateTransition
 function animateTransition(fromStep, toStep) {
-    // Najpierw sprawdź, czy mamy oba kroki
-    if (!fromStep.positions || !toStep.positions) {
-        loadStepWithoutAnimation(toStep);
-        return;
-    }
-    
     // Wyczyść boisko
     $('.pitch.horizontal').empty();
     
     // Sprawdź, czy podanie ma być górą
     const isHighBall = toStep.highBall === true;
-    
-    // Animuj piłkę
-    if (fromStep.positions.ball && toStep.positions.ball) {
-        // Dodaj piłkę w pozycji początkowej
-        $('.pitch.horizontal').append(`
-            <div class="ball" id="game-ball" 
-                 style="left: ${fromStep.positions.ball.left}; top: ${fromStep.positions.ball.top};"></div>
-        `);
-        
-        // Jeśli ma być podanie górą, dodaj klasę animacji
-        if (isHighBall) {
-            $('#game-ball').addClass('high-ball-animation');
-        }
-        
-        // Animuj przemieszczenie piłki
-        $('#game-ball').animate({
-            'left': toStep.positions.ball.left,
-            'top': toStep.positions.ball.top
-        }, 600, 'easeInOutCubic', function() {
-            // Po zakończeniu animacji usuń klasę
-            $(this).removeClass('high-ball-animation');
-        });
-    } else {
-        // Jeśli brakuje piłki w którymś kroku, po prostu pokaż ją bez animacji
-        if (toStep.positions.ball) {
-            $('.pitch.horizontal').append(`
-                <div class="ball" id="game-ball" 
-                     style="left: ${toStep.positions.ball.left}; top: ${toStep.positions.ball.top};"></div>
-            `);
-        }
-    }
     
     // Przygotuj mapy graczy dla szybkiego wyszukiwania
     const fromAttackers = {};
@@ -664,64 +644,161 @@ function animateTransition(fromStep, toStep) {
     
     if (fromStep.positions.attackers) {
         fromStep.positions.attackers.forEach(player => {
-            fromAttackers[player.id || player.number] = player;
+            const key = player.id || 'a' + player.number;
+            fromAttackers[key] = player;
         });
     }
     
     if (fromStep.positions.defenders) {
         fromStep.positions.defenders.forEach(player => {
-            fromDefenders[player.id || player.number] = player;
+            const key = player.id || 'd' + player.number;
+            fromDefenders[key] = player;
         });
     }
     
-    // Animuj atakujących
+    // Poprawiona animacja piłki
+    if (fromStep.positions.ball && toStep.positions.ball) {
+        if (isHighBall) {
+            // Tworzymy kontener dla piłki
+            const $ballContainer = $('<div class="ball-container"></div>').css({
+                left: fromStep.positions.ball.left,
+                top: fromStep.positions.ball.top
+            });
+            
+            // Dodajemy piłkę do kontenera z klasą animacji
+            $ballContainer.append('<div class="ball high-ball"></div>');
+            $('.pitch.horizontal').append($ballContainer);
+            
+            // Zapisz docelową pozycję do wykorzystania w callbacku
+            const targetLeft = toStep.positions.ball.left;
+            const targetTop = toStep.positions.ball.top;
+            
+            // Animujemy kontener liniowo
+            $ballContainer.animate({
+                left: targetLeft,
+                top: targetTop
+            }, {
+                duration: 1000,
+                easing: 'linear',
+                queue: false,
+                // Dodaj callback po zakończeniu animacji
+                complete: function() {
+                    // Usuń kontener z animacją
+                    $ballContainer.remove();
+                    
+                    // Dodaj piłkę bezpośrednio do boiska w docelowej pozycji
+                    $('.pitch.horizontal').append(`
+                        <div class="ball" id="game-ball" 
+                             style="left: ${targetLeft}; top: ${targetTop};"></div>
+                    `);
+                }
+            });
+        } else {
+            // Pozostała część kodu dla zwykłego podania bez zmian
+            $('.pitch.horizontal').append(`
+                <div class="ball" id="game-ball" 
+                     style="left: ${fromStep.positions.ball.left}; top: ${fromStep.positions.ball.top};"></div>
+            `);
+            
+            $('#game-ball').animate({
+                left: toStep.positions.ball.left,
+                top: toStep.positions.ball.top
+            }, {
+                duration: 600,
+                easing: 'linear',
+                queue: false
+            });
+        }
+    }
+    
+    // Animuj atakujących z ulepszeniami
     if (toStep.positions.attackers) {
         toStep.positions.attackers.forEach(player => {
-            const id = player.id || player.number;
-            const fromPlayer = fromAttackers[id];
+            const key = player.id || 'a' + player.number;
+            const safeId = 'player_' + key.replace(/[^a-zA-Z0-9]/g, '_');
+            const fromPlayer = fromAttackers[key];
+            
+            // Dodaj klasę goalkeeper dla bramkarza (numer 1)
+            const isGoalkeeper = (player.number === 1) ? 'goalkeeper' : '';
             
             if (fromPlayer) {
-                // Gracz istnieje w obu krokach - animuj
+                // Dodaj gracza w pozycji początkowej
                 $('.pitch.horizontal').append(`
-                    <div class="player attacker" id="${id}" 
+                    <div class="player attacker ${isGoalkeeper}" id="${safeId}" 
                          style="left: ${fromPlayer.left}; top: ${fromPlayer.top};">${player.number}</div>
                 `);
                 
-                $(`#${id}`).animate({
-                    'left': player.left,
-                    'top': player.top
-                }, 600, 'easeInOutCubic');
+                // Utwórz obiekt opcji animacji
+                const animOptions = {
+                    duration: 600,
+                    easing: 'linear',   // Stała prędkość
+                    queue: false,       // Nie dodawaj do kolejki
+                    complete: function() {
+                        $(this).css('transform', 'translate(-50%, -50%)');  // Upewnij się, że transform zostanie zachowany
+                    }
+                };
+                
+                // Zastosuj małe losowe opóźnienie
+                setTimeout(() => {
+                    // Użyj requestAnimationFrame dla lepszej wydajności
+                    requestAnimationFrame(() => {
+                        $(`#${safeId}`).animate({
+                            left: player.left,
+                            top: player.top
+                        }, animOptions);
+                    });
+                }, Math.random() * 100);
             } else {
-                // Gracz nie istniał wcześniej - po prostu dodaj go
+                // Gracz nie istniał wcześniej - po prostu go dodaj
                 $('.pitch.horizontal').append(`
-                    <div class="player attacker" id="${id}" 
+                    <div class="player attacker ${isGoalkeeper}" id="${safeId}" 
                          style="left: ${player.left}; top: ${player.top};">${player.number}</div>
                 `);
             }
         });
     }
     
-    // Animuj broniących
+    // Zastosuj tę samą technikę dla obrońców
     if (toStep.positions.defenders) {
         toStep.positions.defenders.forEach(player => {
-            const id = player.id || player.number;
-            const fromPlayer = fromDefenders[id];
+            const key = player.id || 'd' + player.number;
+            const safeId = 'player_' + key.replace(/[^a-zA-Z0-9]/g, '_');
+            const fromPlayer = fromDefenders[key];
+            
+            // Dodaj klasę goalkeeper dla bramkarza (numer 1)
+            const isGoalkeeper = (player.number === 1) ? 'goalkeeper' : '';
             
             if (fromPlayer) {
-                // Gracz istnieje w obu krokach - animuj
+                // Dodaj gracza w pozycji początkowej
                 $('.pitch.horizontal').append(`
-                    <div class="player defender" id="${id}" 
+                    <div class="player defender ${isGoalkeeper}" id="${safeId}" 
                          style="left: ${fromPlayer.left}; top: ${fromPlayer.top};">${player.number}</div>
                 `);
                 
-                $(`#${id}`).animate({
-                    'left': player.left,
-                    'top': player.top
-                }, 600, 'easeInOutCubic');
+                // Utwórz obiekt opcji animacji
+                const animOptions = {
+                    duration: 600,
+                    easing: 'linear',   // Stała prędkość
+                    queue: false,       // Nie dodawaj do kolejki
+                    complete: function() {
+                        $(this).css('transform', 'translate(-50%, -50%)');  // Upewnij się, że transform zostanie zachowany
+                    }
+                };
+                
+                // Zastosuj małe losowe opóźnienie
+                setTimeout(() => {
+                    // Użyj requestAnimationFrame dla lepszej wydajności
+                    requestAnimationFrame(() => {
+                        $(`#${safeId}`).animate({
+                            left: player.left,
+                            top: player.top
+                        }, animOptions);
+                    });
+                }, Math.random() * 100);
             } else {
-                // Gracz nie istniał wcześniej - po prostu dodaj go
+                // Gracz nie istniał wcześniej - po prostu go dodaj
                 $('.pitch.horizontal').append(`
-                    <div class="player defender" id="${id}" 
+                    <div class="player defender ${isGoalkeeper}" id="${safeId}" 
                          style="left: ${player.left}; top: ${player.top};">${player.number}</div>
                 `);
             }
@@ -734,5 +811,25 @@ $.extend($.easing, {
     easeInOutCubic: function (x, t, b, c, d) {
         if ((t/=d/2) < 1) return c/2*t*t*t + b;
         return c/2*((t-=2)*t*t + 2) + b;
+    },
+    easeOutBack: function (x, t, b, c, d, s) {
+        if (s == undefined) s = 1.70158;
+        return c*((t=t/d-1)*t*((s+1)*t + s) + 1) + b;
     }
 });
+
+// Dodaj na końcu pliku plays.js i builder.js
+function ensureConsistentPitchDisplay() {
+    // Usuń min-height z tactical-board, które może powodować problemy
+    $('.tactical-board.horizontal').css('min-height', '0');
+    
+    // Upewnij się, że boisko jest wyrównane do góry
+    $('.pitch.horizontal').css('background-position', 'top center');
+    
+    // Upewnij się, że proportions są zachowane
+    const width = $('.tactical-board.horizontal').width();
+    const height = width * (2/3); // proporcja 3:2
+    
+    // Ustaw padding-top zamiast height dla zachowania proporcji
+    $('.tactical-board.horizontal').css('padding-top', `${height}px`);
+}

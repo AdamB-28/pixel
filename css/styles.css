@@ -73,9 +73,11 @@ body {
 .tactical-board.horizontal {
     position: relative;
     width: 100%;
-    padding-top: 66.67%; /* 3:2 aspect ratio for horizontal pitch */
-    height: 100%;
-    min-height: 540px;
+    height: 0;
+    padding-top: 66.67%; /* Proporcja 3:2 dla boiska */
+    min-height: 0; /* Usunięcie min-height, które może powodować problemy */
+    overflow: visible;
+    margin: 0;
 }
 
 .pitch {
@@ -93,11 +95,27 @@ body {
     box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
 }
 
+.pitch.horizontal,
+.pitch.horizontal.builder-pitch {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 750px;
+    height: 100%;
+    background-image: url('../img/fullpitch.png');
+    background-size: contain !important;
+    background-position: top center !important; /* Wyrównanie do góry */
+    background-repeat: no-repeat !important;
+    margin: 0;
+    padding: 0;
+    border: none; /* Usunięcie ramki, która może wpływać na pozycjonowanie */
+}
+
 .pitch.horizontal {
     position: absolute;
     top: 0;
     left: 0;
-    width: 100%;
+    width: 750px;
     height: 100%;
     background-image: url('../img/fullpitch.png');
     background-size: contain;
@@ -125,7 +143,7 @@ body {
 
 /* Player dot styling */
 .player {
-    position: absolute;
+    position: absolute !important;
     width: 30px;
     height: 30px;
     background-color: #ff3333;
@@ -141,6 +159,8 @@ body {
     font-weight: bold;
     font-size: 14px;
     text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    will-change: left, top; /* Podpowiedź dla przeglądarki, że te właściwości będą się zmieniać */
 }
 
 .player:hover {
@@ -380,6 +400,12 @@ body {
     flex-grow: 1;
     overflow-y: auto; /* Only scroll card content if needed */
     overflow-x: hidden;
+    padding: 0 !important; /* Usunięcie paddingu, który może wpływać na wyrównanie */
+}
+
+.card .card-body .tactical-board.horizontal {
+    margin-top: 0;
+    margin-bottom: 0;
 }
 
 /* Player description area */
@@ -406,7 +432,7 @@ button {
 
 /* Ball styling */
 .ball {
-    position: absolute;
+    position: absolute !important;
     width: 20px;
     height: 20px;
     background-color: white;
@@ -418,6 +444,8 @@ button {
     cursor: move;
     background-image: radial-gradient(circle, white 0%, white 70%, #333 70%, #333 100%);
     transition: all 0.3s ease-in-out;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    will-change: left, top; /* Podpowiedź dla przeglądarki */
 }
 
 /* Style dla przycisków kroków */
@@ -584,7 +612,7 @@ button {
 
 /* Poprawka dla stylów elementów podczas animacji */
 .player, .ball {
-    transition: none; /* Wyłączamy transitiony CSS dla animacji jQuery */
+    transition: none !important; /* Wyłącz wszelkie przejścia CSS aby nie kolidowały z jQuery animate */
 }
 
 /* Przejścia między krokami */
@@ -665,4 +693,149 @@ button {
 .builder-pitch .player, 
 .builder-pitch .ball {
     transition: all 0.3s ease-in-out;
+}
+
+/* Animacja dla piłki górnej - dodaj to do css/styles.css */
+@keyframes highBallArc {
+    0% {
+        transform: translateY(0) scale(1);
+        box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+    }
+    50% {
+        transform: translateY(-60px) scale(1.2);
+        box-shadow: 0 60px 10px rgba(0, 0, 0, 0.2);
+    }
+    100% {
+        transform: translateY(0) scale(1);
+        box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+    }
+}
+
+.high-ball-animation {
+    animation: highBallArc 0.6s ease-out;
+    box-shadow: 0 10px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Kontener dla animacji piłki górnej */
+.ball-container {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    transform: translate(-50%, -50%);
+    z-index: 20;
+}
+
+/* Animacja piłki górnej */
+.ball.high-ball {
+    animation: highBallArc 0.6s ease-out;
+    animation-fill-mode: forwards;
+}
+
+/* Poprawiona animacja dla piłki przy podaniu górnym */
+@keyframes highBallArc {
+    0% {
+        transform: translateY(0) scale(1);
+        box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+    }
+    50% {
+        transform: translateY(-60px) scale(1.2);
+        box-shadow: 0 60px 10px rgba(0, 0, 0, 0.2);
+    }
+    100% {
+        transform: translateY(0) scale(1);
+        box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+    }
+}
+
+/* Kontener dla animacji piłki górnej - umożliwia ruch po łuku */
+.ball-container {
+    position: absolute;
+    z-index: 20;
+    transform: translate(-50%, -50%);
+}
+
+/* Piłka w podaniu górnym */
+.ball-container .ball.high-ball {
+    position: relative;
+    width: 20px;
+    height: 20px;
+    background-color: white;
+    border-radius: 50%;
+    animation: highBallArc 1s linear;
+}
+
+/* Usunięcie konfliktujących transition styles */
+.player, 
+.ball {
+    transition: none !important; /* Wyłącz wszelkie przejścia CSS aby nie kolidowały z jQuery animate */
+}
+
+/* Style specyficzne dla draggable (przeciągania) */
+.ui-draggable-dragging {
+    transition: none !important;
+    z-index: 1000 !important;
+}
+
+/* Nowe, uproszczone style dla graczy */
+.player {
+    position: absolute !important;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    will-change: left, top; /* Podpowiedź dla przeglądarki, że te właściwości będą się zmieniać */
+}
+
+/* Nowe, uproszczone style dla piłki */
+.ball {
+    position: absolute !important;
+    width: 20px;
+    height: 20px;
+    background-color: white;
+    border: 1px solid #333;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 15;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    will-change: left, top; /* Podpowiedź dla przeglądarki */
+    background-image: radial-gradient(circle, white 0%, white 70%, #333 70%, #333 100%);
+}
+
+/* Poprawione style dla animacji piłki górą */
+.ball-container {
+    position: absolute;
+    z-index: 20;
+    transform: translate(-50%, -50%);
+}
+
+.ball-container .ball.high-ball {
+    position: relative;
+    width: 20px;
+    height: 20px;
+    background-color: white;
+    border-radius: 50%;
+    animation: highBallArc 1s linear;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes highBallArc {
+    0% {
+        transform: translateY(0) scale(1);
+        box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+    }
+    50% {
+        transform: translateY(-60px) scale(1.2);
+        box-shadow: 0 60px 10px rgba(0, 0, 0, 0.2);
+    }
+    100% {
+        transform: translateY(0) scale(1);
+        box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+    }
 }
