@@ -231,32 +231,80 @@ function initializePitch() {
     changeFormation('defense', false); // No animation for initial setup
 }
 
+// Completely reworked approach for smooth animations
 $(document).ready(function() {
+    // Get references to the buttons with correct IDs
+    const $attackButton = $('#attack-btn');
+    const $defenseButton = $('#defense-btn');
+    
     // Initialize the pitch with players
     initializePitch();
+    
+    // Reset button handlers to prevent conflicts
+    $attackButton.off('click');
+    $defenseButton.off('click');
     
     // Player selection handler
     $('.player').on('click', function() {
         const playerId = $(this).attr('id');
-        
-        // Remove selected class from all players
         $('.player').removeClass('selected');
-        
-        // Add selected class to clicked player
         $(this).addClass('selected');
-        
-        // Update player description
         updatePlayerDescription(playerId);
     });
     
-    // Attack and Defense button handlers
-    $('#attack-btn').on('click', function() {
-        changeFormation('attack');
+    // Modified function for changing formations with jQuery animate instead of CSS transitions
+    function changeFormationWithAnimation(formationType) {
+        console.log('Changing formation to:', formationType);
+        const positions = formations[formationType];
+        
+        // Update button states
+        if (formationType === 'attack') {
+            $attackButton.addClass('active');
+            $defenseButton.removeClass('active');
+        } else {
+            $defenseButton.addClass('active');
+            $attackButton.removeClass('active');
+        }
+        
+        // Get pitch dimensions for percentage calculations
+        const $pitch = $('.pitch');
+        const pitchWidth = $pitch.width();
+        const pitchHeight = $pitch.height();
+        
+        // Animate each player using jQuery's animate function
+        for (const playerId in positions) {
+            const $player = $(`#${playerId}`);
+            const pos = positions[playerId];
+            
+            // Convert percentages to pixels for animation
+            const leftPx = (parseFloat(pos.left) / 100) * pitchWidth;
+            const topPx = (parseFloat(pos.top) / 100) * pitchHeight;
+            
+            // Use jQuery animate for reliable animation
+            $player.stop(true).animate({
+                left: leftPx + 'px',
+                top: topPx + 'px'
+            }, {
+                duration: 800,
+                easing: 'linear',
+                queue: false
+            });
+        }
+    }
+    
+    // Set up click handlers
+    $attackButton.on('click', function() {
+        changeFormationWithAnimation('attack');
     });
     
-    $('#defense-btn').on('click', function() {
-        changeFormation('defense');
+    $defenseButton.on('click', function() {
+        changeFormationWithAnimation('defense');
     });
+    
+    // Set initial formation (defense active by default)
+    setTimeout(function() {
+        changeFormationWithAnimation('defense');
+    }, 300);
 });
 
 function updatePlayerDescription(playerId) {

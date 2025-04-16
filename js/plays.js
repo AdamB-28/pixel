@@ -474,6 +474,9 @@ $(document).ready(function() {
             elem.style.transform = value;
         }
     };
+
+    ensureConsistentPitchSize();
+    $(window).on('resize', ensureConsistentPitchSize);
 });
 
 // New function to populate the plays menu
@@ -833,3 +836,231 @@ function ensureConsistentPitchDisplay() {
     // Ustaw padding-top zamiast height dla zachowania proporcji
     $('.tactical-board.horizontal').css('padding-top', `${height}px`);
 }
+
+// Ensure consistent pitch dimensions and scaling
+function ensureConsistentPitchSize() {
+    const $tacticalBoard = $('.tactical-board.horizontal');
+    const containerWidth = $tacticalBoard.width();
+    const containerHeight = containerWidth * (2 / 3); // Maintain 3:2 aspect ratio
+
+    // Apply consistent dimensions to the pitch
+    $('.pitch.horizontal').css({
+        width: containerWidth + 'px',
+        height: containerHeight + 'px'
+    });
+
+    console.log(`Pitch dimensions set to: ${containerWidth}px x ${containerHeight}px`);
+}
+
+// Ensure players maintain their positions relative to the pitch image
+function scalePlayersToPitch() {
+    const $pitch = $('.pitch');
+    const pitchWidth = $pitch.width();
+    const pitchHeight = $pitch.height();
+
+    $('.player').each(function() {
+        const $player = $(this);
+        const leftPercent = parseFloat($player.data('left-percent'));
+        const topPercent = parseFloat($player.data('top-percent'));
+
+        const left = (leftPercent / 100) * pitchWidth;
+        const top = (topPercent / 100) * pitchHeight;
+
+        $player.css({
+            left: `${left}px`,
+            top: `${top}px`
+        });
+    });
+}
+
+// Initialize player positions as percentages relative to the pitch image
+function initializePlayerPositions() {
+    const $pitch = $('.pitch');
+    const pitchWidth = $pitch.width();
+    const pitchHeight = $pitch.height();
+
+    $('.player').each(function() {
+        const $player = $(this);
+        const left = parseFloat($player.css('left')) / pitchWidth * 100;
+        const top = parseFloat($player.css('top')) / pitchHeight * 100;
+
+        $player.data('left-percent', left);
+        $player.data('top-percent', top);
+    });
+
+    scalePlayersToPitch();
+}
+
+// Call scalePlayersToPitch on window resize
+$(window).on('resize', scalePlayersToPitch);
+
+// Initialize player positions on document ready
+$(document).ready(function() {
+    initializePlayerPositions();
+});
+
+// Call this function on document ready and window resize
+$(document).ready(function() {
+    ensureConsistentPitchSize();
+    $(window).on('resize', ensureConsistentPitchSize);
+});
+
+// Function to scale player positions dynamically based on pitch size
+function scalePlayerPositions() {
+    const $pitch = $('.pitch');
+    const pitchWidth = $pitch.width();
+    const pitchHeight = $pitch.height();
+
+    $('.player').each(function() {
+        const $player = $(this);
+        const leftPercent = parseFloat($player.data('left-percent'));
+        const topPercent = parseFloat($player.data('top-percent'));
+
+        const left = (leftPercent / 100) * pitchWidth;
+        const top = (topPercent / 100) * pitchHeight;
+
+        $player.css({
+            left: `${left}px`,
+            top: `${top}px`
+        });
+    });
+}
+
+// Initialize player positions as percentages relative to the pitch
+function initializePlayerPositions() {
+    $('.player').each(function() {
+        const $player = $(this);
+        const left = parseFloat($player.css('left')) / $('.pitch').width() * 100;
+        const top = parseFloat($player.css('top')) / $('.pitch').height() * 100;
+
+        $player.data('left-percent', left);
+        $player.data('top-percent', top);
+    });
+
+    scalePlayerPositions();
+}
+
+// Call scalePlayerPositions on window resize
+$(window).on('resize', scalePlayerPositions);
+
+// Initialize player positions on document ready
+$(document).ready(function() {
+    initializePlayerPositions();
+});
+
+// Adjust player and ball positions dynamically based on pitch size
+function scaleElementsToPitch() {
+    const $pitch = $('.pitch');
+    const pitchWidth = $pitch.width();
+    const pitchHeight = $pitch.height();
+
+    // Scale players
+    $('.player').each(function() {
+        const $player = $(this);
+        const leftPercent = parseFloat($player.data('left-percent'));
+        const topPercent = parseFloat($player.data('top-percent'));
+
+        const left = (leftPercent / 100) * pitchWidth;
+        const top = (topPercent / 100) * pitchHeight;
+
+        $player.css({
+            left: `${left}px`,
+            top: `${top}px`
+        });
+    });
+
+    // Scale ball
+    const $ball = $('.ball');
+    if ($ball.length) {
+        const ballLeftPercent = parseFloat($ball.data('left-percent'));
+        const ballTopPercent = parseFloat($ball.data('top-percent'));
+
+        const ballLeft = (ballLeftPercent / 100) * pitchWidth;
+        const ballTop = (ballTopPercent / 100) * pitchHeight;
+
+        $ball.css({
+            left: `${ballLeft}px`,
+            top: `${ballTop}px`
+        });
+    }
+}
+
+// Initialize positions as percentages relative to the pitch
+function initializeElementPositions() {
+    const $pitch = $('.pitch');
+    const pitchWidth = $pitch.width();
+    const pitchHeight = $pitch.height();
+
+    // Initialize players
+    $('.player').each(function() {
+        const $player = $(this);
+        const left = parseFloat($player.css('left')) / pitchWidth * 100;
+        const top = parseFloat($player.css('top')) / pitchHeight * 100;
+
+        $player.data('left-percent', left);
+        $player.data('top-percent', top);
+    });
+
+    // Initialize ball
+    const $ball = $('.ball');
+    if ($ball.length) {
+        const ballLeft = parseFloat($ball.css('left')) / pitchWidth * 100;
+        const ballTop = parseFloat($ball.css('top')) / pitchHeight * 100;
+
+        $ball.data('left-percent', ballLeft);
+        $ball.data('top-percent', ballTop);
+    }
+
+    scaleElementsToPitch();
+}
+
+// Save positions in percentages
+function savePositionsInPercentages() {
+    const $pitch = $('.pitch');
+    const pitchWidth = $pitch.width();
+    const pitchHeight = $pitch.height();
+
+    // Save player positions
+    $('.player').each(function() {
+        const $player = $(this);
+        const left = parseFloat($player.css('left')) / pitchWidth * 100;
+        const top = parseFloat($player.css('top')) / pitchHeight * 100;
+
+        $player.data('left-percent', left);
+        $player.data('top-percent', top);
+    });
+
+    // Save ball position
+    const $ball = $('.ball');
+    if ($ball.length) {
+        const ballLeft = parseFloat($ball.css('left')) / pitchWidth * 100;
+        const ballTop = parseFloat($ball.css('top')) / pitchHeight * 100;
+
+        $ball.data('left-percent', ballLeft);
+        $ball.data('top-percent', ballTop);
+    }
+}
+
+// Call scaleElementsToPitch on window resize
+$(window).on('resize', scaleElementsToPitch);
+
+// Initialize positions on document ready
+$(document).ready(function() {
+    initializeElementPositions();
+
+    // Save positions in percentages whenever they are updated
+    $(document).on('dragstop', '.player, .ball', savePositionsInPercentages);
+});
+
+// Automatically load the first step of the first play on page load
+$(document).ready(function() {
+    if (Object.keys(plays).length > 0) {
+        const firstPlayId = Object.keys(plays)[0];
+        currentPlay = firstPlayId;
+        initializePlay(firstPlayId);
+        changeStep(0); // Load the first step of the first play
+
+        // Highlight the first play in the list
+        $(`#plays-list a[data-play="${firstPlayId}"]`).addClass('active');
+    }
+});

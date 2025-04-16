@@ -106,88 +106,93 @@ function setElementPosition($element, left, top) {
     });
 }
 
-// Poprawiona funkcja saveCurrentStep
+// Update saveCurrentStep to store positions in percentages
 function saveCurrentStep() {
     console.log("Saving current step:", currentStep);
-    
+
     // Capture current positions of all players
     const attackers = [];
     const defenders = [];
-    
+
+    // Get pitch dimensions
+    const $pitch = $('.builder-pitch');
+    const pitchWidth = $pitch.width();
+    const pitchHeight = $pitch.height();
+
     // Get ball position
     const $ball = $('.builder-pitch .ball');
     if ($ball.length === 0) {
         console.error("No ball found on the pitch!");
         return false;
     }
-    
-    const ballLeft = $ball.css('left');
-    const ballTop = $ball.css('top');
-    
-    // Zapisz pozycje atakujących
+
+    const ballLeft = (parseFloat($ball.css('left')) / pitchWidth) * 100;
+    const ballTop = (parseFloat($ball.css('top')) / pitchHeight) * 100;
+
+    // Save attacker positions
     $('.builder-pitch .player.attacker').each(function() {
         const $player = $(this);
-        const left = $player.css('left');
-        const top = $player.css('top');
-        
-        // Pobierz rzeczywisty numer z tekstu elementu
+        const left = (parseFloat($player.css('left')) / pitchWidth) * 100;
+        const top = (parseFloat($player.css('top')) / pitchHeight) * 100;
+
+        // Get the actual number from the element's text
         const number = parseInt($player.text()) || 0;
-        
-        // Sprawdź, czy to bramkarz (numer 1)
+
+        // Check if it's a goalkeeper (number 1)
         const isGoalkeeper = (number === 1);
-        
+
         attackers.push({
             id: $player.attr('id'),
-            left: left,
-            top: top,
+            left: `${left}%`,
+            top: `${top}%`,
             number: number,
-            isGoalkeeper: isGoalkeeper // Dodaj flagę bramkarza
+            isGoalkeeper: isGoalkeeper // Add goalkeeper flag
         });
     });
-    
-    // Zapisz pozycje broniących
+
+    // Save defender positions
     $('.builder-pitch .player.defender').each(function() {
         const $player = $(this);
-        const left = $player.css('left');
-        const top = $player.css('top');
-        
-        // Pobierz rzeczywisty numer z tekstu elementu
+        const left = (parseFloat($player.css('left')) / pitchWidth) * 100;
+        const top = (parseFloat($player.css('top')) / pitchHeight) * 100;
+
+        // Get the actual number from the element's text
         const number = parseInt($player.text()) || 0;
-        
-        // Sprawdź, czy to bramkarz (numer 1)
+
+        // Check if it's a goalkeeper (number 1)
         const isGoalkeeper = (number === 1);
-        
+
         defenders.push({
             id: $player.attr('id'),
-            left: left,
-            top: top,
+            left: `${left}%`,
+            top: `${top}%`,
             number: number,
-            isGoalkeeper: isGoalkeeper // Dodaj flagę bramkarza
+            isGoalkeeper: isGoalkeeper // Add goalkeeper flag
         });
     });
-    
-    // Zapisz opis kroku
+
+    // Save step description
     const stepDescription = $('#step-description').val().trim() || "Brak opisu";
-    
-    // Zachowaj wcześniej ustawioną flagę highBall (jeśli istnieje)
+
+    // Preserve previously set highBall flag (if it exists)
     const highBall = currentPlayBuilder.steps[currentStep] && 
                     typeof currentPlayBuilder.steps[currentStep].highBall !== 'undefined' ? 
                     currentPlayBuilder.steps[currentStep].highBall : false;
-    
+
     // Update the step in the play
     currentPlayBuilder.steps[currentStep] = {
         positions: {
             attackers: attackers,
             defenders: defenders,
             ball: {
-                left: ballLeft,
-                top: ballTop
+                left: `${ballLeft}%`,
+                top: `${ballTop}%`
             }
         },
         description: stepDescription,
         highBall: highBall
     };
-    
+
     return true;
 }
 
@@ -1428,4 +1433,111 @@ function ensureGoalkeeperClasses() {
 // Wywołaj tę funkcję po załadowaniu kroku i przy zmianach numerów graczy
 $(document).on('DOMNodeInserted', '.player', function() {
     ensureGoalkeeperClasses();
+});
+
+// Ensure consistent pitch dimensions and scaling
+function ensureConsistentPitchSize() {
+    const $tacticalBoard = $('.tactical-board.horizontal');
+    const containerWidth = $tacticalBoard.width();
+    const containerHeight = containerWidth * (2 / 3); // Maintain 3:2 aspect ratio
+
+    // Apply consistent dimensions to the pitch
+    $('.pitch.horizontal').css({
+        width: containerWidth + 'px',
+        height: containerHeight + 'px'
+    });
+
+    console.log(`Pitch dimensions set to: ${containerWidth}px x ${containerHeight}px`);
+}
+
+// Call this function on document ready and window resize
+$(document).ready(function() {
+    ensureConsistentPitchSize();
+    $(window).on('resize', ensureConsistentPitchSize);
+});
+
+// Ensure players maintain their positions relative to the pitch
+function scalePlayersToPitch() {
+    const $pitch = $('.pitch');
+    const pitchWidth = $pitch.width();
+    const pitchHeight = $pitch.height();
+
+    $('.player').each(function() {
+        const $player = $(this);
+        const leftPercent = parseFloat($player.data('left-percent'));
+        const topPercent = parseFloat($player.data('top-percent'));
+
+        const left = (leftPercent / 100) * pitchWidth;
+        const top = (topPercent / 100) * pitchHeight;
+
+        $player.css({
+            left: `${left}px`,
+            top: `${top}px`
+        });
+    });
+}
+
+// Initialize player positions as percentages relative to the pitch
+function initializePlayerPositions() {
+    $('.player').each(function() {
+        const $player = $(this);
+        const left = parseFloat($player.css('left')) / $('.pitch').width() * 100;
+        const top = parseFloat($player.css('top')) / $('.pitch').height() * 100;
+
+        $player.data('left-percent', left);
+        $player.data('top-percent', top);
+    });
+
+    scalePlayersToPitch();
+}
+
+// Call scalePlayersToPitch on window resize
+$(window).on('resize', scalePlayersToPitch);
+
+// Initialize player positions on document ready
+$(document).ready(function() {
+    initializePlayerPositions();
+});
+
+// Function to scale player positions dynamically based on pitch size
+function scalePlayerPositions() {
+    const $pitch = $('.pitch');
+    const pitchWidth = $pitch.width();
+    const pitchHeight = $pitch.height();
+
+    $('.player').each(function() {
+        const $player = $(this);
+        const leftPercent = parseFloat($player.data('left-percent'));
+        const topPercent = parseFloat($player.data('top-percent'));
+
+        const left = (leftPercent / 100) * pitchWidth;
+        const top = (topPercent / 100) * pitchHeight;
+
+        $player.css({
+            left: `${left}px`,
+            top: `${top}px`
+        });
+    });
+}
+
+// Initialize player positions as percentages relative to the pitch
+function initializePlayerPositions() {
+    $('.player').each(function() {
+        const $player = $(this);
+        const left = parseFloat($player.css('left')) / $('.pitch').width() * 100;
+        const top = parseFloat($player.css('top')) / $('.pitch').height() * 100;
+
+        $player.data('left-percent', left);
+        $player.data('top-percent', top);
+    });
+
+    scalePlayerPositions();
+}
+
+// Call scalePlayerPositions on window resize
+$(window).on('resize', scalePlayerPositions);
+
+// Initialize player positions on document ready
+$(document).ready(function() {
+    initializePlayerPositions();
 });
